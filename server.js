@@ -34,10 +34,10 @@ const CHAIN_CONFIG = {
     },
     1: {
         name: 'Ethereum',
-        rpcUrl: process.env.ETHEREUM_RPC || 'https://eth.llamarpc.com',
+        rpcUrl: process.env.ETHEREUM_RPC || 'https://eth-mainnet.public.blastapi.io',
         mode: 'uniswap',
-        factory: '0x1F98431c8aD98523631AE4a59F267346ea31F984',  // Uniswap V3 Factory
-        feeTiers: [500, 3000, 10000],
+        factory: '0x1F98431c8aD98523631AE4a59f267346ea31F984',  // Uniswap V3 Factory
+        feeTiers: [500, 3000, 10000, 100],
     }
 };
 
@@ -152,14 +152,14 @@ async function findPool(provider, chainId, tokenA, tokenB) {
     } else if (config.mode === 'uniswap') {
         const factory = new ethers.Contract(config.factory, UNISWAP_FACTORY_ABI, provider);
 
-        for (const fee of config.feeTiers) {
-            let pool = await factory.getPool(tokenA, tokenB, fee).catch(() => ZERO);
-            if (pool === ZERO) {
-                pool = await factory.getPool(tokenB, tokenA, fee).catch(() => ZERO);
-            }
-            if (pool !== ZERO) return pool;
-        }
-        return null;
+        // Try all fee tiers in parallel for speed
+        const results = await Promise.all(
+            config.feeTiers.map(fee =>
+                factory.getPool(tokenA, tokenB, fee).catch(() => ZERO)
+            )
+        );
+        const pool = results.find(r => r !== ZERO);
+        return pool || null;
     }
 
     return null;
