@@ -1,0 +1,16 @@
+{
+    "name": "express-twap",
+    "version": "1.0.0",
+    "description": "Express server for TWAP calculations from Algebra V3 pool oracles",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node --watch server.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "ethers": "^5.7.2",
+        "express": "^4.18.2",
+        "node-fetch": "^2.7.0"
+    }
+}
