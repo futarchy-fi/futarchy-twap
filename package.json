@@ -1,8 +1,11 @@
 {
-    "name": "express-twap",
-    "version": "1.0.0",
-    "description": "Express server for TWAP calculations from Algebra V3 pool oracles",
-    "main": "server.js",
+    "name": "futarchy-twap",
+    "version": "1.1.0",
+    "description": "On-chain TWAP calculator for Futarchy proposals — usable as a library, CLI, or server",
+    "main": "lib/index.js",
+    "bin": {
+        "futarchy-twap": "./cli.js"
+    },
     "scripts": {
         "start": "node server.js",
         "dev": "node --watch server.js"

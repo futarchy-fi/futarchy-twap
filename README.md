@@ -1,8 +1,10 @@
-# Futarchy TWAP Server
+# Futarchy TWAP
 
 On-chain TWAP (Time-Weighted Average Price) calculator for [Futarchy](https://futarchy.fi) proposals.
 
 Discovers pools **100% on-chain** from proposal contracts — no subgraph dependency for pool discovery.
+
+Works as a **library**, **CLI tool**, or **HTTP server** — same code, three ways to use it.
 
 ## How It Works
 
@@ -29,12 +31,58 @@ TWAP uses "conditional" pools:
 
 ```bash
 npm install
-node server.js
 ```
 
-Server starts on `http://localhost:3005`.
+### As a Library
 
-## API
+```js
+const { calculateTwap, discoverPools } = require('futarchy-twap');
+
+// Gnosis (chain 100) — GNO/sDAI proposal
+const twap = await calculateTwap('0x45e1064348fd8a407d6d1f59fc64b05f633b28fc', 100, {
+  days: 5,                    // TWAP window (default: 5)
+  endTimestamp: 1738886400,   // optional, defaults to now
+  rpcUrl: 'https://...',     // optional, override default RPC
+});
+console.log(twap.twap.winner);  // "YES" or "NO"
+
+// Ethereum (chain 1) — AAVE/GHO proposal
+const ethTwap = await calculateTwap('0xfb45ae9d8e5874e85b8e23d735eb9718efef47fa', 1);
+console.log(ethTwap.twap.winner);
+
+// Discover pools — same output as the /pools API endpoint
+const pools = await discoverPools('0x45e1064348fd8a407d6d1f59fc64b05f633b28fc', 100);
+console.log(pools.found);  // number of pools found
+```
+
+### As a CLI Tool
+
+```bash
+# Gnosis (chain 100) — GNO/sDAI proposal
+node cli.js twap 100 0x45e1064348fd8a407d6d1f59fc64b05f633b28fc
+
+# With options
+node cli.js twap 100 0x45e1064348fd8a407d6d1f59fc64b05f633b28fc --endTimestamp 1738886400 --days 5
+
+# Ethereum (chain 1) — AAVE/GHO proposal
+node cli.js twap 1 0xfb45ae9d8e5874e85b8e23d735eb9718efef47fa
+
+# Discover pools
+node cli.js pools 100 0x45e1064348fd8a407d6d1f59fc64b05f633b28fc
+node cli.js pools 1 0xfb45ae9d8e5874e85b8e23d735eb9718efef47fa
+
+# Custom RPC
+node cli.js twap 1 0xfb45ae9d8e5874e85b8e23d735eb9718efef47fa --rpc https://my-rpc.com
+```
+
+### As a Server
+
+```bash
+node server.js
+# Server starts on http://localhost:3005
+```
+
+## Server API
 
 ### `GET /pools/:chainId/:proposalAddress`
 
@@ -95,6 +143,15 @@ curl "http://localhost:3005/twap/100/0x45e1064348fd8a407d6d1f59fc64b05f633b28fc?
 | `PORT` | `3005` | Server port |
 | `GNOSIS_RPC` | `https://rpc.gnosischain.com` | Gnosis Chain RPC |
 | `ETHEREUM_RPC` | `https://eth.llamarpc.com` | Ethereum Mainnet RPC |
+
+## Project Structure
+
+```
+├── lib/index.js   ← Core logic (shared by everything)
+├── server.js      ← Express server (imports lib/)
+├── cli.js         ← CLI tool (imports lib/)
+└── package.json
+```
 
 ## Supported Chains
 
